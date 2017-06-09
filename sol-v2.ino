@@ -16,6 +16,7 @@
    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
+#define FASTLED_ALLOW_INTERRUPTS 0
 #include <FastLED.h>
 FASTLED_USING_NAMESPACE
 
@@ -24,15 +25,15 @@ extern "C" {
 }
 
 #include <ESP8266WiFi.h>
-#include <ESP8266mDNS.h>
+//#include <ESP8266mDNS.h>
 #include <ESP8266WebServer.h>
 #include <ESP8266HTTPUpdateServer.h>
 #include <WebSocketsServer.h>
 #include <FS.h>
 #include <EEPROM.h>
-#include <IRremoteESP8266.h>
-#include <TimeLib.h>
-#include <WiFiUdp.h>
+//#include <IRremoteESP8266.h>
+//#include <TimeLib.h>
+//#include <WiFiUdp.h>
 
 #define ARRAY_SIZE(A) (sizeof(A) / sizeof((A)[0]))
 
@@ -40,7 +41,7 @@ extern "C" {
 
 #include "Field.h"
 
-#define HOSTNAME "ESP8266-" ///< Hostname. The setup function adds the Chip ID at the end.
+#define HOSTNAME "Sol-ESP8266-" ///< Hostname. The setup function adds the Chip ID at the end.
 
 //#define RECV_PIN D4
 //IRrecv irReceiver(RECV_PIN);
@@ -117,10 +118,10 @@ uint8_t gHue = 0; // rotating "base color" used by many of the patterns
 
 CRGB solidColor = CRGB::Blue;
 
-// A UDP instance to let us send and receive packets over UDP
-WiFiUDP udp;
+//// A UDP instance to let us send and receive packets over UDP
+//WiFiUDP udp;
 
-unsigned int udpLocalPort = 2390;      // local port to listen for UDP packets
+//unsigned int udpLocalPort = 2390;      // local port to listen for UDP packets
 
 // scale the brightness of all pixels down
 void dimAll(byte value)
@@ -142,9 +143,9 @@ typedef PatternAndName PatternAndNameList[];
 #include "Disk.h"
 #include "Noise.h"
 #include "PolarNoise.h"
-//#include "Twinkles.h"
-//#include "TwinkleFOX.h"
-#include "Clock.h"
+#include "Twinkles.h"
+#include "TwinkleFOX.h"
+// #include "Clock.h"
 
 // List of patterns to cycle through.  Each is defined as a separate function below.
 
@@ -157,8 +158,8 @@ PatternAndNameList patterns = {
   { decayingOrbits,         "Decaying Orbits" },
   { solarSystem,            "Solar System" },
 
-  { handClock,              "Analog Clock" },
-  { arcClock,               "Arc Clock" },
+  //  { handClock,              "Analog Clock" },
+  //  { arcClock,               "Arc Clock" },
 
   // XY map patterns
   { wave,                   "Wave" },
@@ -207,27 +208,27 @@ PatternAndNameList patterns = {
   { juggle,                 "Juggle" },
   { juggle2,                "Juggle 2" },
 
-  //  // twinkle patterns
-  //  { rainbowTwinkles,        "Rainbow Twinkles" },
-  //  { snowTwinkles,           "Snow Twinkles" },
-  //  { cloudTwinkles,          "Cloud Twinkles" },
-  //  { incandescentTwinkles,   "Incandescent Twinkles" },
-  //
-  //  // TwinkleFOX patterns
-  //  { retroC9Twinkles,        "Retro C9 Twinkles" },
-  //  { redWhiteTwinkles,       "Red & White Twinkles" },
-  //  { blueWhiteTwinkles,      "Blue & White Twinkles" },
-  //  { redGreenWhiteTwinkles,  "Red, Green & White Twinkles" },
-  //  { fairyLightTwinkles,     "Fairy Light Twinkles" },
-  //  { snow2Twinkles,          "Snow 2 Twinkles" },
-  //  { hollyTwinkles,          "Holly Twinkles" },
-  //  { iceTwinkles,            "Ice Twinkles" },
-  //  { partyTwinkles,          "Party Twinkles" },
-  //  { forestTwinkles,         "Forest Twinkles" },
-  //  { lavaTwinkles,           "Lava Twinkles" },
-  //  { fireTwinkles,           "Fire Twinkles" },
-  //  { cloud2Twinkles,         "Cloud 2 Twinkles" },
-  //  { oceanTwinkles,          "Ocean Twinkles" },
+  // twinkle patterns
+  { rainbowTwinkles,        "Rainbow Twinkles" },
+  { snowTwinkles,           "Snow Twinkles" },
+  { cloudTwinkles,          "Cloud Twinkles" },
+  { incandescentTwinkles,   "Incandescent Twinkles" },
+
+  // TwinkleFOX patterns
+  { retroC9Twinkles,        "Retro C9 Twinkles" },
+  { redWhiteTwinkles,       "Red & White Twinkles" },
+  { blueWhiteTwinkles,      "Blue & White Twinkles" },
+  { redGreenWhiteTwinkles,  "Red, Green & White Twinkles" },
+  { fairyLightTwinkles,     "Fairy Light Twinkles" },
+  { snow2Twinkles,          "Snow 2 Twinkles" },
+  { hollyTwinkles,          "Holly Twinkles" },
+  { iceTwinkles,            "Ice Twinkles" },
+  { partyTwinkles,          "Party Twinkles" },
+  { forestTwinkles,         "Forest Twinkles" },
+  { lavaTwinkles,           "Lava Twinkles" },
+  { fireTwinkles,           "Fire Twinkles" },
+  { cloud2Twinkles,         "Cloud 2 Twinkles" },
+  { oceanTwinkles,          "Ocean Twinkles" },
 
   { showSolidColor,         "Solid Color" }
 };
@@ -244,9 +245,9 @@ void setup() {
   //  FastLED.addLeds<LED_TYPE, DATA_PIN, COLOR_ORDER>(leds, NUM_LEDS);         // for WS2812 (Neopixel)
   FastLED.addLeds<LED_TYPE, DATA_PIN, CLK_PIN, COLOR_ORDER>(leds, NUM_LEDS); // for APA102 (Dotstar)
   FastLED.setDither(false);
-  FastLED.setCorrection(Typical8mmPixel);
+  FastLED.setCorrection(TypicalLEDStrip);
   FastLED.setBrightness(brightness);
-  FastLED.setMaxPowerInVoltsAndMilliamps(5, MILLI_AMPS);
+  //  FastLED.setMaxPowerInVoltsAndMilliamps(5, MILLI_AMPS);
   fill_solid(leds, NUM_LEDS, CRGB::Black);
   FastLED.show();
 
@@ -292,10 +293,10 @@ void setup() {
   for (uint8_t i = 0; i < hostname.length(); i++)
     hostnameChar[i] = hostname.charAt(i);
 
-  MDNS.begin(hostnameChar);
-
-  // Add service to MDNS-SD
-  MDNS.addService("http", "tcp", 80);
+  //  MDNS.begin(hostnameChar);
+  //
+  //  // Add service to MDNS-SD
+  //  MDNS.addService("http", "tcp", 80);
 
   // Print hostname.
   Serial.println("Hostname: " + hostname);
@@ -380,23 +381,23 @@ void setup() {
     sendInt(speed);
   });
 
-  //  webServer.on("/twinkleSpeed", HTTP_POST, []() {
-  //    String value = webServer.arg("value");
-  //    twinkleSpeed = value.toInt();
-  //    if (twinkleSpeed < 0) twinkleSpeed = 0;
-  //    else if (twinkleSpeed > 8) twinkleSpeed = 8;
-  //    broadcastInt("twinkleSpeed", twinkleSpeed);
-  //    sendInt(twinkleSpeed);
-  //  });
-  //
-  //  webServer.on("/twinkleDensity", HTTP_POST, []() {
-  //    String value = webServer.arg("value");
-  //    twinkleDensity = value.toInt();
-  //    if (twinkleDensity < 0) twinkleDensity = 0;
-  //    else if (twinkleDensity > 8) twinkleDensity = 8;
-  //    broadcastInt("twinkleDensity", twinkleDensity);
-  //    sendInt(twinkleDensity);
-  //  });
+  webServer.on("/twinkleSpeed", HTTP_POST, []() {
+    String value = webServer.arg("value");
+    twinkleSpeed = value.toInt();
+    if (twinkleSpeed < 0) twinkleSpeed = 0;
+    else if (twinkleSpeed > 8) twinkleSpeed = 8;
+    broadcastInt("twinkleSpeed", twinkleSpeed);
+    sendInt(twinkleSpeed);
+  });
+
+  webServer.on("/twinkleDensity", HTTP_POST, []() {
+    String value = webServer.arg("value");
+    twinkleDensity = value.toInt();
+    if (twinkleDensity < 0) twinkleDensity = 0;
+    else if (twinkleDensity > 8) twinkleDensity = 8;
+    broadcastInt("twinkleDensity", twinkleDensity);
+    sendInt(twinkleDensity);
+  });
 
   webServer.on("/solidColor", HTTP_POST, []() {
     String r = webServer.arg("r");
@@ -461,13 +462,13 @@ void setup() {
   webSocketsServer.onEvent(webSocketEvent);
   Serial.println("Web socket server started");
 
-  Serial.println("Starting UDP");
-  udp.begin(udpLocalPort);
-  Serial.print("Local port: ");
-  Serial.println(udp.localPort());
-
-  Serial.println("waiting for sync");
-  setSyncProvider(getNtpTime);
+  //  Serial.println("Starting UDP");
+  //  udp.begin(udpLocalPort);
+  //  Serial.print("Local port: ");
+  //  Serial.println(udp.localPort());
+  //
+  //  Serial.println("waiting for sync");
+  //  setSyncProvider(getNtpTime);
 
   autoPlayTimeout = millis() + (autoplayDuration * 1000);
 }
@@ -519,14 +520,14 @@ void loop() {
     gCurrentPaletteNumber = addmod8( gCurrentPaletteNumber, 1, gGradientPaletteCount);
     gTargetPalette = gGradientPalettes[ gCurrentPaletteNumber ];
 
-    paletteIndex = addmod8( paletteIndex, 1, paletteCount);
-    targetPalette = palettes[paletteIndex];
+    //    paletteIndex = addmod8( paletteIndex, 1, paletteCount);
+    //    targetPalette = palettes[paletteIndex];
   }
 
   EVERY_N_MILLISECONDS(40) {
     // slowly blend the current palette to the next
     nblendPaletteTowardPalette( gCurrentPalette, gTargetPalette, 8);
-    nblendPaletteTowardPalette(currentPalette, targetPalette, 16);
+    //    nblendPaletteTowardPalette(currentPalette, targetPalette, 16);
     gHue++;  // slowly cycle the "base color" through the rainbow
   }
 
@@ -881,8 +882,10 @@ void adjustPattern(bool up)
   if (currentPatternIndex >= patternCount)
     currentPatternIndex = 0;
 
-  EEPROM.write(1, currentPatternIndex);
-  EEPROM.commit();
+  if (autoplay == 0) {
+    EEPROM.write(1, currentPatternIndex);
+    EEPROM.commit();
+  }
 
   broadcastInt("pattern", currentPatternIndex);
 }
@@ -894,8 +897,10 @@ void setPattern(uint8_t value)
 
   currentPatternIndex = value;
 
-  EEPROM.write(1, currentPatternIndex);
-  EEPROM.commit();
+  if (autoplay == 0) {
+    EEPROM.write(1, currentPatternIndex);
+    EEPROM.commit();
+  }
 
   broadcastInt("pattern", currentPatternIndex);
 }
@@ -1061,7 +1066,7 @@ void spin()
 
   static uint8_t beat = 1;
 
-  for(uint8_t r = 0; r < ringCount; r++)
+  for (uint8_t r = 0; r < ringCount; r++)
   {
     uint8_t a = sin8(r * 4 + beat);
 
